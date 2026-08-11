@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Rating Pelayanan</title>
+  <!-- Library QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif; }
     body { background:#f1f5f9; min-height:100vh; }
@@ -104,7 +106,7 @@
     .btn-cancel { background:#f1f5f9; color:#475569; }
     .btn-save { background:#0ea5e9; color:white; }
     .qr-box { background:#f8fafc; border-radius:12px; padding:20px; text-align:center; }
-    .qr-placeholder { width:160px; height:160px; background:#e2e8f0; border-radius:12px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:4rem; }
+    #qrcode { margin:0 auto 16px; padding:16px; background:white; border-radius:12px; display:inline-block; }
     .tips-box { margin-top:16px; background:#fef3c7; border-radius:10px; padding:14px; font-size:0.85rem; color:#92400e; }
   </style>
 <base target="_blank">
@@ -233,11 +235,12 @@
         </div>
         <div id="tab-qr" class="hidden">
           <div class="qr-box">
-            <div class="qr-placeholder">📷</div>
+            <!-- QR CODE BENAR-BENAR DIGENERATE DI SINI -->
+            <div id="qrcode"></div>
             <p style="font-weight:600; color:#0f172a; margin-bottom:8px;">QR Code untuk <span id="qrOrgName">-</span></p>
             <p style="color:#64748b; font-size:0.85rem; margin-bottom:16px;">URL: <code style="background:#e2e8f0; padding:4px 8px; border-radius:6px;">https://ksmservice90-cell.github.io/rating-pelayanan/?org_id=<span id="qrOrgId">-</span></code></p>
-            <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="alert('QR Code berhasil diunduh!')">Unduh QR Code</button>
-            <button class="btn btn-cancel" style="width:auto; padding:10px 24px; margin-left:8px;" onclick="copyLink()">Salin Link</button>
+            <button class="btn btn-primary" style="width:auto; padding:10px 24px;" onclick="downloadQR()">📥 Unduh QR Code</button>
+            <button class="btn btn-cancel" style="width:auto; padding:10px 24px; margin-left:8px;" onclick="copyLink()">📋 Salin Link</button>
           </div>
           <div class="tips-box">
             <strong>💡 Tips:</strong> Cetak QR Code ini dan tempelkan di setiap loket pelayanan. Setiap scan akan otomatis mengarah ke form rating untuk organisasi ini.
@@ -297,6 +300,7 @@
     let currentOrg = 'KL001';
     let allOrgs = [];
     let editingId = null;
+    let qrCodeObj = null;
 
     function switchLogin(type, btn) {
       document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
@@ -333,7 +337,6 @@
         const pass = document.getElementById('orgPass').value;
         if (!org || !pass) { showError('Pilih organisasi dan isi password'); return; }
 
-        // Untuk org admin, gunakan email dummy berdasarkan org_id
         const email = org.toLowerCase() + '@admin.com';
         try {
           const res = await fetch(API_URL, {
@@ -492,10 +495,43 @@
       ['questions','reviews','qr'].forEach(t => document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab));
 
       if (tab === 'qr') {
-        const org = allOrgs.find(o => o.org_id === currentOrg) || { name: currentOrg };
-        document.getElementById('qrOrgName').textContent = org.name;
-        document.getElementById('qrOrgId').textContent = currentOrg;
+        generateQRCode();
       }
+    }
+
+    // ============================================
+    // GENERATE QR CODE BENAR-BENAR
+    // ============================================
+    function generateQRCode() {
+      const org = allOrgs.find(o => o.org_id === currentOrg) || { name: currentOrg };
+      const url = FORM_BASE_URL + '?org_id=' + currentOrg;
+
+      document.getElementById('qrOrgName').textContent = org.name;
+      document.getElementById('qrOrgId').textContent = currentOrg;
+
+      // Hapus QR code lama
+      const container = document.getElementById('qrcode');
+      container.innerHTML = '';
+
+      // Generate QR code baru
+      qrCodeObj = new QRCode(container, {
+        text: url,
+        width: 200,
+        height: 200,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function downloadQR() {
+      const canvas = document.querySelector('#qrcode canvas');
+      if (!canvas) { alert('QR Code belum siap. Tunggu sebentar.'); return; }
+
+      const link = document.createElement('a');
+      link.download = 'qr-code-' + currentOrg + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
     function openModal() { editingId=null; document.getElementById('modalTitle').textContent='Tambah Pertanyaan'; document.getElementById('mOrder').value=1; document.getElementById('mText').value=''; document.getElementById('mType').value='star'; document.getElementById('mOptions').value=''; document.getElementById('mRequired').checked=true; document.getElementById('mActive').checked=true; toggleOpts(); document.getElementById('modal').classList.add('active'); }
