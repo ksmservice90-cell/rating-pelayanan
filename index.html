@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rating Pelayanan</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif; }
+    body { background:#f8fafc; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .card { background:white; border-radius:20px; padding:28px; width:100%; max-width:440px; box-shadow:0 10px 40px rgba(0,0,0,0.06); }
+    .org-header { text-align:center; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #f1f5f9; }
+    .org-logo { width:60px; height:60px; background:#e2e8f0; border-radius:16px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+    .org-name { font-weight:700; color:#0f172a; font-size:1.1rem; }
+    .org-address { color:#64748b; font-size:0.8rem; }
+    .q-block { margin-bottom:20px; }
+    .q-label { display:block; font-weight:600; color:#334155; margin-bottom:8px; font-size:0.9rem; }
+    .q-required { color:#ef4444; }
+    select, input[type=text], textarea { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.95rem; }
+    select:focus, input:focus, textarea:focus { outline:none; border-color:#0ea5e9; }
+    textarea { min-height:90px; resize:vertical; }
+    .stars { display:flex; justify-content:center; gap:10px; margin:8px 0; }
+    .star { font-size:2.5rem; color:#e2e8f0; cursor:pointer; transition:all 0.15s; }
+    .star.active { color:#fbbf24; }
+    .star:hover { transform:scale(1.15); }
+    .nps { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:8px 0; }
+    .nps-btn { width:36px; height:36px; border-radius:8px; border:1.5px solid #e2e8f0; background:white; cursor:pointer; font-weight:600; color:#475569; transition:all 0.15s; }
+    .nps-btn.active { background:#0ea5e9; color:white; border-color:#0ea5e9; }
+    .emoji-group { display:flex; justify-content:center; gap:16px; margin:8px 0; }
+    .emoji-btn { font-size:2rem; cursor:pointer; opacity:0.4; transition:all 0.15s; }
+    .emoji-btn.active { opacity:1; transform:scale(1.2); }
+    .btn { width:100%; padding:14px; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-primary { background:#0ea5e9; color:white; }
+    .btn-primary:hover { background:#0284c7; }
+    .btn-primary:disabled { background:#cbd5e1; cursor:not-allowed; }
+    .hidden { display:none !important; }
+    .success { text-align:center; padding:30px 0; }
+    .success-icon { font-size:4rem; margin-bottom:12px; }
+    .success h2 { color:#059669; margin-bottom:8px; }
+    .success p { color:#64748b; }
+    .loading { text-align:center; padding:40px; color:#64748b; }
+    .error { text-align:center; padding:40px; color:#ef4444; }
+    .error a { color:#0ea5e9; }
+  </style>
+</head>
+<body>
+  <div class="card" id="formCard">
+    <div class="org-header">
+      <div class="org-logo" id="orgLogo">🏥</div>
+      <div class="org-name" id="orgName">Memuat...</div>
+      <div class="org-address" id="orgAddress"></div>
+    </div>
+    <div id="questionsContainer"><div class="loading">Memuat pertanyaan...</div></div>
+    <button class="btn btn-primary" id="submitBtn" onclick="submit()" disabled>Kirim Penilaian</button>
+  </div>
+
+  <div class="card hidden" id="successCard">
+    <div class="success">
+      <div class="success-icon">✅</div>
+      <h2>Terima Kasih!</h2>
+      <p>Penilaian Anda sangat berarti untuk perbaikan layanan kami.</p>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // GANTI INI dengan URL Web App Anda!
+    // Contoh: https://script.google.com/macros/s/AKfycb.../exec
+    // ============================================
+    const API_URL = 'GANTI_URL_WEB_APP_ANDA_DISINI';
+
+    // Ambil org_id dari URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const ORG_ID = urlParams.get('org_id');
+
+    let questions = [];
+    let answers = {};
+
+    if (!ORG_ID) {
+      document.body.innerHTML = `
+        <div class="card error">
+          <h2>QR Code Tidak Valid</h2>
+          <p>Silakan scan QR code yang tersedia di loket pelayanan.</p>
+        </div>`;
+    }
+
+    async function init() {
+      try {
+        // Load info organisasi
+        const orgRes = await fetch(API_URL + '?action=org_info&org_id=' + ORG_ID);
+        const orgData = await orgRes.json();
+        if (orgData.status === 'ok' && orgData.org) {
+          document.getElementById('orgName').textContent = orgData.org.name;
+          document.getElementById('orgAddress').textContent = orgData.org.address || '';
+        }
+
+        // Load pertanyaan untuk organisasi ini
+        const qRes = await fetch(API_URL + '?action=questions&org_id=' + ORG_ID);
+        const qData = await qRes.json();
+        questions = qData.questions || [];
+        renderQuestions();
+      } catch(e) {
+        document.getElementById('questionsContainer').innerHTML = 
+          '<div class="error">Gagal memuat. Periksa koneksi internet Anda.</div>';
+      }
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questionsContainer');
+      if (questions.length === 0) {
+        container.innerHTML = '<div class="loading">Belum ada pertanyaan untuk organisasi ini.</div>';
+        return;
+      }
+
+      container.innerHTML = questions.map(q => {
+        const req = q.required ? '<span class="q-required"> *</span>' : '';
+        let input = '';
+
+        if (q.type === 'select') {
+          const opts = q.options.map(o => `<option value="${o.trim()}">${o.trim()}</option>`).join('');
+          input = `<select id="Q${q.id}" onchange="validate()"><option value="">-- Pilih --</option>${opts}</select>`;
+        }
+        else if (q.type === 'star') {
+          input = `<div class="stars" id="stars${q.id}">` + 
+            [1,2,3,4,5].map(i => `<span class="star" onclick="setStar(${q.id},${i})">★</span>`).join('') +
+            `</div><input type="hidden" id="Q${q.id}">`;
+        }
+        else if (q.type === 'nps') {
+          input = `<div class="nps" id="nps${q.id}">` +
+            Array.from({length:11},(_,i) => `<button class="nps-btn" onclick="setNps(${q.id},${i})">${i}</button>`).join('') +
+            `</div><input type="hidden" id="Q${q.id}">`;
+        }
+        else if (q.type === 'emoji') {
+          const emojis = ['😠','😞','😐','🙂','😍'];
+          input = `<div class="emoji-group" id="emoji${q.id}">` +
+            emojis.map((e,i) => `<span class="emoji-btn" onclick="setEmoji(${q.id},${i+1},this)">${e}</span>`).join('') +
+            `</div><input type="hidden" id="Q${q.id}">`;
+        }
+        else {
+          input = `<textarea id="Q${q.id}" placeholder="Tulis jawaban Anda..." oninput="validate()"></textarea>`;
+        }
+
+        return `<div class="q-block"><label class="q-label">${q.text}${req}</label>${input}</div>`;
+      }).join('');
+
+      validate();
+    }
+
+    function setStar(qid, val) {
+      document.querySelectorAll(`#stars${qid} .star`).forEach((s,i) => s.classList.toggle('active', i < val));
+      document.getElementById(`Q${qid}`).value = val;
+      validate();
+    }
+
+    function setNps(qid, val) {
+      document.querySelectorAll(`#nps${qid} .nps-btn`).forEach((b,i) => b.classList.toggle('active', i === val));
+      document.getElementById(`Q${qid}`).value = val;
+      validate();
+    }
+
+    function setEmoji(qid, val, el) {
+      document.querySelectorAll(`#emoji${qid} .emoji-btn`).forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById(`Q${qid}`).value = val;
+      validate();
+    }
+
+    function validate() {
+      let valid = true;
+      questions.forEach(q => {
+        if (q.required) {
+          const el = document.getElementById(`Q${q.id}`);
+          if (!el || !el.value.trim()) valid = false;
+        }
+      });
+      document.getElementById('submitBtn').disabled = !valid;
+    }
+
+    async function submit() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+
+      answers = {};
+      questions.forEach(q => {
+        const el = document.getElementById(`Q${q.id}`);
+        answers['Q' + q.id] = el ? el.value : '';
+      });
+
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'submit',
+            org_id: ORG_ID,
+            answers: answers,
+            device: navigator.userAgent
+          })
+        });
+        document.getElementById('formCard').classList.add('hidden');
+        document.getElementById('successCard').classList.remove('hidden');
+      } catch(err) {
+        alert('Gagal mengirim. Periksa koneksi internet Anda.');
+        btn.disabled = false;
+        btn.textContent = 'Kirim Penilaian';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
