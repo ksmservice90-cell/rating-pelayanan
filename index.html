@@ -9,9 +9,10 @@
     body { background:#f8fafc; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
     .card { background:white; border-radius:20px; padding:28px; width:100%; max-width:440px; box-shadow:0 10px 40px rgba(0,0,0,0.06); }
     .org-header { text-align:center; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #f1f5f9; }
-    .org-logo { width:60px; height:60px; background:#e2e8f0; border-radius:16px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
-    .org-name { font-weight:700; color:#0f172a; font-size:1.1rem; }
-    .org-address { color:#64748b; font-size:0.8rem; }
+    .org-logo { width:80px; height:80px; border-radius:20px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:2.5rem; background:#f1f5f9; overflow:hidden; }
+    .org-logo img { width:100%; height:100%; object-fit:cover; }
+    .org-name { font-weight:700; color:#0f172a; font-size:1.15rem; }
+    .org-address { color:#64748b; font-size:0.8rem; margin-top:4px; }
     .q-block { margin-bottom:20px; }
     .q-label { display:block; font-weight:600; color:#334155; margin-bottom:8px; font-size:0.9rem; }
     .q-required { color:#ef4444; }
@@ -39,8 +40,9 @@
     .success p { color:#64748b; }
     .loading { text-align:center; padding:40px; color:#64748b; }
     .error { text-align:center; padding:40px; color:#ef4444; }
-    .error a { color:#0ea5e9; }
+    .footer { text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid #f1f5f9; font-size:0.75rem; color:#94a3b8; }
   </style>
+<base target="_blank">
 </head>
 <body>
   <div class="card" id="formCard">
@@ -51,6 +53,7 @@
     </div>
     <div id="questionsContainer"><div class="loading">Memuat pertanyaan...</div></div>
     <button class="btn btn-primary" id="submitBtn" onclick="submit()" disabled>Kirim Penilaian</button>
+    <div class="footer">Powered by Rating Pelayanan</div>
   </div>
 
   <div class="card hidden" id="successCard">
@@ -64,11 +67,9 @@
   <script>
     // ============================================
     // GANTI INI dengan URL Web App Anda!
-    // Contoh: https://script.google.com/macros/s/AKfycb.../exec
     // ============================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbw_zwfyeZihqyhhxymrMgWEPbZF5O3JokX-1oTOxMuCKsW1QVgfqH7nFA08vYhPnBEaFw/exec';
 
-    // Ambil org_id dari URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const ORG_ID = urlParams.get('org_id');
 
@@ -85,15 +86,20 @@
 
     async function init() {
       try {
-        // Load info organisasi
+        // Load info organisasi (termasuk logo)
         const orgRes = await fetch(API_URL + '?action=org_info&org_id=' + ORG_ID);
         const orgData = await orgRes.json();
         if (orgData.status === 'ok' && orgData.org) {
           document.getElementById('orgName').textContent = orgData.org.name;
           document.getElementById('orgAddress').textContent = orgData.org.address || '';
+
+          // Tampilkan logo jika ada
+          if (orgData.org.logo_url) {
+            document.getElementById('orgLogo').innerHTML = `<img src="${orgData.org.logo_url}" alt="Logo" onerror="this.parentElement.innerHTML='🏥'">`;
+          }
         }
 
-        // Load pertanyaan untuk organisasi ini
+        // Load pertanyaan
         const qRes = await fetch(API_URL + '?action=questions&org_id=' + ORG_ID);
         const qData = await qRes.json();
         questions = qData.questions || [];
