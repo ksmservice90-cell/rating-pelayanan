@@ -4,13 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Rating Pelayanan</title>
-  <!-- Library QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif; }
     body { background:#f1f5f9; min-height:100vh; }
-
-    /* LOGIN */
     .login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f172a,#1e293b); padding:20px; }
     .login-card { background:white; border-radius:20px; padding:36px; width:100%; max-width:420px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); }
     .login-card h2 { text-align:center; color:#0f172a; margin-bottom:8px; }
@@ -27,8 +24,6 @@
     .login-tab.active { background:white; color:#0f172a; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
     .hidden { display:none !important; }
     .error-msg { color:#ef4444; font-size:0.85rem; text-align:center; margin-top:8px; }
-
-    /* DASHBOARD */
     .container { max-width:1100px; margin:0 auto; padding:20px; }
     .dash-header { background:linear-gradient(135deg,#0f172a,#1e293b); color:white; padding:20px 28px; border-radius:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
     .dash-header h2 { margin:0; font-size:1.3rem; }
@@ -112,17 +107,14 @@
 <base target="_blank">
 </head>
 <body>
-  <!-- LOGIN SCREEN -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card">
       <h2>⭐ Rating Pelayanan</h2>
       <p>Masuk ke dashboard organisasi Anda</p>
-
       <div class="login-tabs">
         <button class="login-tab active" onclick="switchLogin('org',this)">Admin Organisasi</button>
         <button class="login-tab" onclick="switchLogin('super',this)">Super Admin</button>
       </div>
-
       <div id="orgLoginForm">
         <div class="form-group">
           <label>Pilih Organisasi</label>
@@ -136,7 +128,6 @@
           <input type="password" id="orgPass" placeholder="Masukkan password">
         </div>
       </div>
-
       <div id="superLoginForm" class="hidden">
         <div class="form-group">
           <label>Email Super Admin</label>
@@ -147,13 +138,11 @@
           <input type="password" id="superPass" placeholder="Masukkan password">
         </div>
       </div>
-
       <button class="btn btn-primary" onclick="doLogin()">Masuk</button>
       <div class="error-msg hidden" id="loginError"></div>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboardScreen" class="hidden">
     <div class="container">
       <div class="dash-header">
@@ -170,13 +159,11 @@
         </div>
       </div>
 
-      <!-- SUPER ADMIN: Org List -->
       <div class="panel full" id="superOrgList" style="margin-bottom:20px;">
         <h3>🏥 Semua Organisasi <span class="badge-super">SUPER ADMIN</span></h3>
         <div id="orgListContainer"></div>
       </div>
 
-      <!-- SUPER ADMIN: Compare -->
       <div class="panel full" id="superCompare" style="margin-bottom:20px;">
         <h3>📊 Perbandingan Organisasi <span class="badge-super">SUPER ADMIN</span></h3>
         <table class="compare-table">
@@ -185,7 +172,6 @@
         </table>
       </div>
 
-      <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Respon</div>
@@ -235,7 +221,6 @@
         </div>
         <div id="tab-qr" class="hidden">
           <div class="qr-box">
-            <!-- QR CODE BENAR-BENAR DIGENERATE DI SINI -->
             <div id="qrcode"></div>
             <p style="font-weight:600; color:#0f172a; margin-bottom:8px;">QR Code untuk <span id="qrOrgName">-</span></p>
             <p style="color:#64748b; font-size:0.85rem; margin-bottom:16px;">URL: <code style="background:#e2e8f0; padding:4px 8px; border-radius:6px;">https://ksmservice90-cell.github.io/rating-pelayanan/?org_id=<span id="qrOrgId">-</span></code></p>
@@ -250,7 +235,6 @@
     </div>
   </div>
 
-  <!-- MODAL -->
   <div class="modal-bg" id="modal">
     <div class="modal">
       <h3 id="modalTitle">Tambah Pertanyaan</h3>
@@ -290,10 +274,7 @@
   </div>
 
   <script>
-    // ============================================
-    // GANTI INI dengan URL Web App!
-    // ============================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxh3cPApYcZ94JwQHmHZ0n0ltsFMn1Jy86-FeM67afjUfrISAMklIzUmvNlAQN3DepZVw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw_zwfyeZihqyhhxymrMgWEPbZF5O3JokX-1oTOxMuCKsW1QVgfqH7nFA08vYhPnBEaFw/exec';
     const FORM_BASE_URL = 'https://ksmservice90-cell.github.io/rating-pelayanan/';
 
     let currentUser = null;
@@ -318,74 +299,39 @@
         const email = document.getElementById('superEmail').value.trim();
         const pass = document.getElementById('superPass').value;
         if (!email || !pass) { showError('Isi email dan password'); return; }
-
         try {
-          const res = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', email: email, password: pass })
-          });
+          const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password: pass }) });
           const data = await res.json();
-          if (data.status === 'success') {
-            currentUser = data.user;
-            showDashboard();
-          } else {
-            showError(data.message || 'Login gagal');
-          }
+          if (data.status === 'success') { currentUser = data.user; showDashboard(); }
+          else { showError(data.message || 'Login gagal'); }
         } catch(e) { showError('Gagal terhubung ke server'); }
       } else {
         const org = document.getElementById('loginOrg').value;
         const pass = document.getElementById('orgPass').value;
         if (!org || !pass) { showError('Pilih organisasi dan isi password'); return; }
-
         const email = org.toLowerCase() + '@admin.com';
         try {
-          const res = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', email: email, password: pass })
-          });
+          const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', email: email, password: pass }) });
           const data = await res.json();
-          if (data.status === 'success') {
-            currentUser = data.user;
-            currentOrg = org;
-            showDashboard();
-          } else {
-            showError(data.message || 'Password salah');
-          }
+          if (data.status === 'success') { currentUser = data.user; currentOrg = org; showDashboard(); }
+          else { showError(data.message || 'Password salah'); }
         } catch(e) { showError('Gagal terhubung ke server'); }
       }
     }
 
-    function showError(msg) {
-      const el = document.getElementById('loginError');
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-
-    function logout() {
-      currentUser = null;
-      document.getElementById('loginScreen').classList.remove('hidden');
-      document.getElementById('dashboardScreen').classList.add('hidden');
-    }
+    function showError(msg) { document.getElementById('loginError').textContent = msg; document.getElementById('loginError').classList.remove('hidden'); }
+    function logout() { currentUser = null; document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('dashboardScreen').classList.add('hidden'); }
 
     async function showDashboard() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('dashboardScreen').classList.remove('hidden');
-
       const isSuper = currentUser.role === 'super';
       document.getElementById('orgSwitcher').classList.toggle('hidden', !isSuper);
       document.getElementById('superOrgList').classList.toggle('hidden', !isSuper);
       document.getElementById('superCompare').classList.toggle('hidden', !isSuper);
       document.getElementById('dashTitle').textContent = isSuper ? 'Dashboard Super Admin' : 'Dashboard Rating';
-
-      if (isSuper) {
-        await loadOrganizations();
-        renderOrgList();
-        renderCompare();
-        document.getElementById('orgBadge').innerHTML = 'Semua Organisasi <span class="badge-super">SUPER</span>';
-      } else {
-        document.getElementById('orgBadge').textContent = currentUser.org_id;
-      }
-
+      if (isSuper) { await loadOrganizations(); renderOrgList(); renderCompare(); document.getElementById('orgBadge').innerHTML = 'Semua Organisasi <span class="badge-super">SUPER</span>'; }
+      else { document.getElementById('orgBadge').textContent = currentUser.org_id; }
       await loadAll();
     }
 
@@ -393,25 +339,12 @@
       try {
         const res = await fetch(API_URL + '?action=organizations&role=' + currentUser.role);
         const data = await res.json();
-        if (data.status === 'ok') {
-          allOrgs = data.organizations;
-          const select = document.getElementById('orgSelect');
-          select.innerHTML = allOrgs.map(o => `<option value="${o.org_id}">${o.name}</option>`).join('');
-          select.value = currentOrg;
-        }
+        if (data.status === 'ok') { allOrgs = data.organizations; const select = document.getElementById('orgSelect'); select.innerHTML = allOrgs.map(o => `<option value="${o.org_id}">${o.name}</option>`).join(''); select.value = currentOrg; }
       } catch(e) {}
     }
 
-    function switchOrg(orgId) {
-      currentOrg = orgId;
-      const org = allOrgs.find(o => o.org_id === orgId);
-      document.getElementById('orgBadge').textContent = org ? org.name : orgId;
-      loadAll();
-    }
-
-    async function loadAll() {
-      await Promise.all([loadDashboard(), loadQuestions(), loadReviews()]);
-    }
+    function switchOrg(orgId) { currentOrg = orgId; const org = allOrgs.find(o => o.org_id === orgId); document.getElementById('orgBadge').textContent = org ? org.name : orgId; loadAll(); }
+    async function loadAll() { await Promise.all([loadDashboard(), loadQuestions(), loadReviews()]); }
 
     async function loadDashboard() {
       try {
@@ -419,12 +352,13 @@
         const res = await fetch(url);
         const data = await res.json();
         if (data.status === 'error') { alert(data.message); return; }
-
         const d = data.data || {};
+
+        // ✅ TAMPILKAN DATA REAL DARI API
         document.getElementById('statTotal').textContent = (d.total || 0).toLocaleString('id');
         document.getElementById('statAvg').textContent = (d.avg || 0) + ' ★';
-        document.getElementById('statToday').textContent = '-';
-        document.getElementById('statBad').textContent = '-';
+        document.getElementById('statToday').textContent = (d.today || 0).toLocaleString('id');  // ✅ Respon hari ini
+        document.getElementById('statBad').textContent = (d.bad || 0).toLocaleString('id');      // ✅ Rating buruk
 
         const colors = {5:'#10b981',4:'#84cc16',3:'#f59e0b',2:'#f97316',1:'#ef4444'};
         document.getElementById('distChart').innerHTML = [5,4,3,2,1].map(i => {
@@ -441,127 +375,29 @@
     }
 
     async function loadQuestions() {
-      try {
-        const res = await fetch(API_URL + '?action=questions&org_id=' + currentOrg);
-        const data = await res.json();
-        renderQuestions(data.questions || []);
-      } catch(e) {}
+      try { const res = await fetch(API_URL + '?action=questions&org_id=' + currentOrg); const data = await res.json(); renderQuestions(data.questions || []); } catch(e) {}
     }
-
     function renderQuestions(questions) {
       const tags = {star:'tag-star', text:'tag-text', select:'tag-select', nps:'tag-nps', emoji:'tag-emoji'};
       document.getElementById('questionList').innerHTML = questions.map(q => `
-        <div class="q-item">
-          <span class="q-tag ${tags[q.type]||'tag-text'}">${q.type}</span>
-          <span class="q-text">${q.text} ${q.required?'<span style="color:#ef4444;">*</span>':''}</span>
-          <div style="display:flex;gap:6px;"><button class="q-btn" onclick="editQ(${q.id})">✏️</button><button class="q-btn" onclick="delQ(${q.id})" style="color:#ef4444;">🗑️</button></div>
-        </div>
+        <div class="q-item"><span class="q-tag ${tags[q.type]||'tag-text'}">${q.type}</span><span class="q-text">${q.text} ${q.required?'<span style="color:#ef4444;">*</span>':''}</span><div style="display:flex;gap:6px;"><button class="q-btn" onclick="editQ(${q.id})">✏️</button><button class="q-btn" onclick="delQ(${q.id})" style="color:#ef4444;">🗑️</button></div></div>
       `).join('');
     }
-
     async function loadReviews() {
-      try {
-        const res = await fetch(API_URL + '?action=reviews&org_id=' + currentOrg + '&role=' + currentUser.role + '&user_org=' + currentUser.org_id);
-        const data = await res.json();
-        document.getElementById('reviewList').innerHTML = (data.reviews || []).map(r => `
-          <div class="review-item">
-            <div class="review-header"><span class="review-service">${r.service || '-'}</span><span class="review-time">${new Date(r.time).toLocaleString('id-ID')}</span></div>
-            <div class="review-stars">${'★'.repeat(parseInt(r.rating)||0)}${'☆'.repeat(5-(parseInt(r.rating)||0))}</div>
-            <div class="review-text">${r.feedback || '-'}</div>
-          </div>
-        `).join('');
-      } catch(e) {}
+      try { const res = await fetch(API_URL + '?action=reviews&org_id=' + currentOrg + '&role=' + currentUser.role + '&user_org=' + currentUser.org_id); const data = await res.json(); document.getElementById('reviewList').innerHTML = (data.reviews || []).map(r => `<div class="review-item"><div class="review-header"><span class="review-service">${r.service || '-'}</span><span class="review-time">${new Date(r.time).toLocaleString('id-ID')}</span></div><div class="review-stars">${'★'.repeat(parseInt(r.rating)||0)}${'☆'.repeat(5-(parseInt(r.rating)||0))}</div><div class="review-text">${r.feedback || '-'}</div></div>`).join(''); } catch(e) {}
     }
-
-    function renderOrgList() {
-      const container = document.getElementById('orgListContainer');
-      container.innerHTML = allOrgs.map(o => `
-        <div class="org-card ${o.org_id===currentOrg?'active':''}" onclick="switchOrg('${o.org_id}')">
-          <div class="org-logo" style="background:#e2e8f0;">🏥</div>
-          <div class="org-info"><div class="org-name">${o.name}</div><div class="org-meta">${o.address || ''}</div></div>
-        </div>
-      `).join('');
-    }
-
-    function renderCompare() {
-      document.getElementById('compareBody').innerHTML = allOrgs.map(o => `
-        <tr><td><strong>${o.name}</strong></td><td>-</td><td>-</td><td>-</td><td style="color:#10b981;">↑ stabil</td></tr>
-      `).join('');
-    }
-
-    function switchTab(tab, btn) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      ['questions','reviews','qr'].forEach(t => document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab));
-
-      if (tab === 'qr') {
-        generateQRCode();
-      }
-    }
-
-    // ============================================
-    // GENERATE QR CODE BENAR-BENAR
-    // ============================================
-    function generateQRCode() {
-      const org = allOrgs.find(o => o.org_id === currentOrg) || { name: currentOrg };
-      const url = FORM_BASE_URL + '?org_id=' + currentOrg;
-
-      document.getElementById('qrOrgName').textContent = org.name;
-      document.getElementById('qrOrgId').textContent = currentOrg;
-
-      // Hapus QR code lama
-      const container = document.getElementById('qrcode');
-      container.innerHTML = '';
-
-      // Generate QR code baru
-      qrCodeObj = new QRCode(container, {
-        text: url,
-        width: 200,
-        height: 200,
-        colorDark: '#0f172a',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-    }
-
-    function downloadQR() {
-      const canvas = document.querySelector('#qrcode canvas');
-      if (!canvas) { alert('QR Code belum siap. Tunggu sebentar.'); return; }
-
-      const link = document.createElement('a');
-      link.download = 'qr-code-' + currentOrg + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-
+    function renderOrgList() { document.getElementById('orgListContainer').innerHTML = allOrgs.map(o => `<div class="org-card ${o.org_id===currentOrg?'active':''}" onclick="switchOrg('${o.org_id}')"><div class="org-logo" style="background:#e2e8f0;">🏥</div><div class="org-info"><div class="org-name">${o.name}</div><div class="org-meta">${o.address || ''}</div></div></div>`).join(''); }
+    function renderCompare() { document.getElementById('compareBody').innerHTML = allOrgs.map(o => `<tr><td><strong>${o.name}</strong></td><td>-</td><td>-</td><td>-</td><td style="color:#10b981;">↑ stabil</td></tr>`).join(''); }
+    function switchTab(tab, btn) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); ['questions','reviews','qr'].forEach(t => document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab)); if (tab === 'qr') generateQRCode(); }
+    function generateQRCode() { const org = allOrgs.find(o => o.org_id === currentOrg) || { name: currentOrg }; const url = FORM_BASE_URL + '?org_id=' + currentOrg; document.getElementById('qrOrgName').textContent = org.name; document.getElementById('qrOrgId').textContent = currentOrg; const container = document.getElementById('qrcode'); container.innerHTML = ''; qrCodeObj = new QRCode(container, { text: url, width: 200, height: 200, colorDark: '#0f172a', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H }); }
+    function downloadQR() { const canvas = document.querySelector('#qrcode canvas'); if (!canvas) { alert('QR Code belum siap. Tunggu sebentar.'); return; } const link = document.createElement('a'); link.download = 'qr-code-' + currentOrg + '.png'; link.href = canvas.toDataURL('image/png'); link.click(); }
     function openModal() { editingId=null; document.getElementById('modalTitle').textContent='Tambah Pertanyaan'; document.getElementById('mOrder').value=1; document.getElementById('mText').value=''; document.getElementById('mType').value='star'; document.getElementById('mOptions').value=''; document.getElementById('mRequired').checked=true; document.getElementById('mActive').checked=true; toggleOpts(); document.getElementById('modal').classList.add('active'); }
     function closeModal() { document.getElementById('modal').classList.remove('active'); }
     function toggleOpts() { document.getElementById('optGroup').style.display = document.getElementById('mType').value==='select'?'block':'none'; }
     function editQ(id) { alert('Edit pertanyaan ID: ' + id); }
     async function delQ(id) { if(!confirm('Hapus pertanyaan ini?'))return; await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'deleteQuestion', id:id}) }); loadQuestions(); }
-
-    async function saveQuestion() {
-      const q = {
-        id: editingId,
-        org_id: currentOrg,
-        order: parseInt(document.getElementById('mOrder').value) || 1,
-        text: document.getElementById('mText').value.trim(),
-        type: document.getElementById('mType').value,
-        options: document.getElementById('mOptions').value.trim(),
-        required: document.getElementById('mRequired').checked,
-        active: document.getElementById('mActive').checked
-      };
-      if(!q.text){alert('Isi teks pertanyaan'); return;}
-      if(q.type==='select' && !q.options){alert('Isi opsi pilihan'); return;}
-
-      await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'saveQuestion', question:q}) });
-      closeModal(); loadQuestions();
-    }
-
-    function copyLink() {
-      const url = FORM_BASE_URL + '?org_id=' + currentOrg;
-      navigator.clipboard.writeText(url).then(() => alert('Link disalin: ' + url));
-    }
+    async function saveQuestion() { const q = { id: editingId, org_id: currentOrg, order: parseInt(document.getElementById('mOrder').value) || 1, text: document.getElementById('mText').value.trim(), type: document.getElementById('mType').value, options: document.getElementById('mOptions').value.trim(), required: document.getElementById('mRequired').checked, active: document.getElementById('mActive').checked }; if(!q.text){alert('Isi teks pertanyaan'); return;} if(q.type==='select' && !q.options){alert('Isi opsi pilihan'); return;} await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'saveQuestion', question:q}) }); closeModal(); loadQuestions(); }
+    function copyLink() { const url = FORM_BASE_URL + '?org_id=' + currentOrg; navigator.clipboard.writeText(url).then(() => alert('Link disalin: ' + url)); }
   </script>
 </body>
 </html>
